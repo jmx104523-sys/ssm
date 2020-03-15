@@ -1,0 +1,7 @@
+/com/
+/db.properties
+/log4j.properties
+/mybatis.xml
+/spring.xml
+/springmvc.xml
+/validatorMessage.properties

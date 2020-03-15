@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+		xmlns:tx="http://www.springframework.org/schema/tx"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+http://www.springframework.org/schema/beans/spring-beans.xsd
+http://www.springframework.org/schema/context
+http://www.springframework.org/schema/context/spring-context.xsd
+http://www.springframework.org/schema/aop
+http://www.springframework.org/schema/aop/spring-aop.xsd
+
+http://www.springframework.org/schema/tx
+http://www.springframework.org/schema/tx/spring-tx.xsd">
+   <!-- 引入外部属性文件 -->
+   <context:property-placeholder location="classpath:db.properties"/>
+	<!-- 配置扫描器 -->
+	<context:component-scan base-package="com.hrxb.ssm">
+	</context:component-scan>
+	<!-- 配置c3p0数据源 -->
+	<bean id="dataSource" class="com.mchange.v2.c3p0.ComboPooledDataSource">
+		<!-- 基本配置 -->
+		<property name="driverClass" value="com.mysql.cj.jdbc.Driver"></property>
+		<property name="jdbcUrl" value="jdbc:mysql://172.20.10.7:3307/shopping"></property>
+		<property name="user" value="${db.user}"></property>
+		<property name="password" value="${db.password}"></property>
+		<!-- 高级配置 -->
+		<!--当连接池中的连接耗尽的时候c3p0一次同时获取的连接数。Default: 3 -->
+		<property name="acquireIncrement" value="${db.acquireIncrement}"></property>
+		<!--连接池中保留的最大连接数。Default: 15 -->
+		<property name="maxPoolSize" value="${db.maxPoolSize}"></property>
+		<!--连接池中保留的最小连接数。Default: 3 -->
+		<property name="minPoolSize" value="${db.minPoolSize}"></property>
+		<!-- 初始化连接数 -->
+		<property name="initialPoolSize" value="${db.initialPoolSize}"></property>
+	</bean>
+
+     <!-- 配置事务管理器 -->
+     <bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+        <property name="dataSource" ref="dataSource"></property>
+     </bean>
+     
+    <!-- 配置事务 -->
+    <tx:advice transaction-manager="transactionManager" id="txAdvice">
+       <tx:attributes >
+            <!-- 表示以find开头的方法为为只读事务 -->
+            <tx:method name="find*" read-only="true"/>
+            <tx:method name="get*" read-only="true"/>
+            <!-- 其他方法为默认事务  增删改-->
+            <tx:method name="*" />
+       </tx:attributes>
+    </tx:advice>
+   <aop:config>
+       <!-- 切入点 -->
+      <aop:pointcut expression="execution(* com.hrxb.ssm.service.*.*(..))" id="pointcut"/>
+      <aop:advisor advice-ref="txAdvice" pointcut-ref="pointcut"/>
+   </aop:config> 
+    
+    
+     <!-- 配置mybatis-sqlsessionFactory -->
+    <bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+     <!-- mybatis配置文件 -->
+     <property name="configLocation" value="classpath:mybatis.xml"></property>
+      <!-- 关联数据源 -->
+     <property name="dataSource" ref="dataSource"></property>
+    </bean>
+    
+    <!-- 配置mapper扫描器 -->
+     <bean  class="org.mybatis.spring.mapper.MapperScannerConfigurer">
+       <property name="basePackage" value="com.hrxb.ssm.mapper"></property>
+     
+     </bean>
+    
+    
+    
+    
+</beans>
